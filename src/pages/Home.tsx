@@ -11,6 +11,7 @@ export const Home: React.FC = () => {
   
   const [loadingLatest, setLoadingLatest] = useState(true);
   const [loadingPopular, setLoadingPopular] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   
@@ -42,8 +43,9 @@ export const Home: React.FC = () => {
         setLoadingLatest(true);
         const latest = await getLatestManga(0, 18);
         setLatestManga(latest);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Erro ao buscar atualizações recentes:', err);
+        setError('Não foi possível conectar ao servidor de mangás. Se você usa AdBlocker (Brave, uBlock), tente desativá-lo para este site.');
       } finally {
         setLoadingLatest(false);
       }
@@ -80,9 +82,14 @@ export const Home: React.FC = () => {
       
       {/* Hero Banner */}
       <section style={heroSectionStyle}>
-        {loadingPopular || !heroManga ? (
+        {error ? (
+          <div style={errorBannerStyle}>
+            <h3>Oops! Erro de Conexão</h3>
+            <p>{error}</p>
+          </div>
+        ) : loadingPopular ? (
           <div className="skeleton" style={heroSkeletonStyle} />
-        ) : (
+        ) : heroManga ? (
           <div style={heroWrapperStyle(heroManga.coverUrl)} className="slide-up">
             <div style={heroOverlayStyle} />
             <div style={heroContentStyle}>
@@ -138,7 +145,7 @@ export const Home: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </section>
 
       <div className="container" style={sectionsWrapperStyle}>
@@ -243,6 +250,21 @@ export const Home: React.FC = () => {
 };
 
 // Styles
+const errorBannerStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: '200px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(239, 68, 68, 0.1)',
+  border: '1px solid rgba(239, 68, 68, 0.3)',
+  borderRadius: 'var(--radius-lg)',
+  color: 'var(--text-primary)',
+  textAlign: 'center',
+  padding: '2rem',
+  marginTop: '1rem',
+};
 const homeContainerStyle: React.CSSProperties = {
   width: '100%',
   display: 'flex',
