@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Search, Star, Home, Loader2, X } from 'lucide-react';
+import { BookOpen, Search, Star, Home, Loader2, X, LogIn, Crown } from 'lucide-react';
 import { searchManga, type Manga } from '../api/mangadex';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Manga[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const dropdownRef = useRef<HTMLFormElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user, isVip, loginWithGoogle, logout } = useAuth();
   
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -146,6 +153,51 @@ export const Header: React.FC = () => {
             <span className="desktop-text">Biblioteca</span>
           </a>
           
+          {/* User Auth Section */}
+          <div style={{ position: 'relative' }} ref={userMenuRef}>
+            {user ? (
+              <div 
+                style={userAvatarContainerStyle} 
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="user-avatar"
+              >
+                <img 
+                  src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} 
+                  alt="Avatar" 
+                  style={{...userAvatarStyle, border: isVip ? '2px solid var(--accent-pink)' : '2px solid transparent'}} 
+                />
+                {isVip && <Crown size={14} style={vipIconStyle} />}
+              </div>
+            ) : (
+              <button onClick={loginWithGoogle} style={loginBtnStyle} className="login-btn">
+                <LogIn size={18} />
+                <span className="desktop-text">Entrar</span>
+              </button>
+            )}
+
+            {/* User Dropdown */}
+            {showUserMenu && user && (
+              <div style={userDropdownStyle} className="glass">
+                <div style={userInfoStyle}>
+                  <div style={{ fontWeight: 'bold' }}>{user.displayName}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.email}</div>
+                  {isVip ? (
+                    <span className="badge badge-pink" style={{ marginTop: '0.5rem', alignSelf: 'flex-start' }}>👑 Membro VIP</span>
+                  ) : (
+                    <span className="badge badge-cyan" style={{ marginTop: '0.5rem', alignSelf: 'flex-start' }}>Membro Gratuito</span>
+                  )}
+                </div>
+                <div style={{ borderTop: '1px solid var(--border-color)' }}>
+                  <a href="#/perfil" style={userMenuItemStyle} onClick={() => setShowUserMenu(false)}>Meu Perfil</a>
+                  <a href="#/vip" style={{...userMenuItemStyle, color: 'var(--accent-pink)'}} onClick={() => setShowUserMenu(false)}>
+                    {!isVip ? '✨ Tornar-se VIP' : 'Gerenciar VIP'}
+                  </a>
+                  <button onClick={() => { logout(); setShowUserMenu(false); }} style={userMenuItemStyle}>Sair</button>
+                </div>
+              </div>
+            )}
+          </div>
+          
           {/* Mobile search toggle */}
           <button 
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} 
@@ -255,6 +307,20 @@ export const Header: React.FC = () => {
           .mobile-search-toggle {
             display: flex !important;
           }
+        }
+        
+        .user-avatar {
+          cursor: pointer;
+          transition: transform 0.2s;
+        }
+        .user-avatar:hover {
+          transform: scale(1.05);
+        }
+        .login-btn {
+          transition: all 0.2s;
+        }
+        .login-btn:hover {
+          background: rgba(255,255,255,0.1);
         }
       `}</style>
     </header>
@@ -533,4 +599,75 @@ const mobileResultCoverStyle: React.CSSProperties = {
   height: '65px',
   objectFit: 'cover',
   borderRadius: '4px',
+};
+
+// User Auth Styles
+const userAvatarContainerStyle: React.CSSProperties = {
+  position: 'relative',
+  width: '36px',
+  height: '36px',
+  borderRadius: '50%',
+};
+
+const userAvatarStyle: React.CSSProperties = {
+  width: '100%',
+  height: '100%',
+  borderRadius: '50%',
+  objectFit: 'cover',
+};
+
+const vipIconStyle: React.CSSProperties = {
+  position: 'absolute',
+  bottom: '-4px',
+  right: '-4px',
+  color: '#ffd700',
+  background: '#1a1a2e',
+  borderRadius: '50%',
+  padding: '2px',
+};
+
+const loginBtnStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.5rem 0.75rem',
+  borderRadius: 'var(--radius-sm)',
+  background: 'transparent',
+  border: '1px solid rgba(255,255,255,0.2)',
+  color: 'white',
+  fontWeight: '600',
+  cursor: 'pointer',
+};
+
+const userDropdownStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: '50px',
+  right: 0,
+  width: '220px',
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid var(--border-color)',
+  boxShadow: 'var(--shadow-lg)',
+  overflow: 'hidden',
+  zIndex: 101,
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const userInfoStyle: React.CSSProperties = {
+  padding: '1rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.2rem',
+};
+
+const userMenuItemStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  textAlign: 'left',
+  padding: '0.75rem 1rem',
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--text-primary)',
+  cursor: 'pointer',
+  textDecoration: 'none',
 };

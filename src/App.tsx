@@ -6,13 +6,25 @@ import { MangaDetails } from './pages/MangaDetails';
 import { Favorites } from './pages/Favorites';
 import { Search } from './pages/Search';
 import { MangaReader } from './components/MangaReader';
+import { Profile } from './pages/Profile';
+import { VIP } from './pages/VIP';
+import { useAuth } from './contexts/AuthContext';
 import './App.css';
 
-type Route = 'home' | 'manga-details' | 'favorites' | 'search' | 'reader';
+type Route = 'home' | 'manga-details' | 'favorites' | 'search' | 'reader' | 'profile' | 'vip';
 
 function App() {
   const [route, setRoute] = useState<Route>('home');
   const [params, setParams] = useState<any>({});
+  const { isVip } = useAuth();
+
+  useEffect(() => {
+    if (isVip) {
+      document.body.classList.add('vip-theme');
+    } else {
+      document.body.classList.remove('vip-theme');
+    }
+  }, [isVip]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -37,6 +49,12 @@ function App() {
       } else if (hash === '#/favorites') {
         setRoute('favorites');
         setParams({});
+      } else if (hash.startsWith('#/perfil')) {
+        setRoute('profile');
+        setParams({});
+      } else if (hash.startsWith('#/vip')) {
+        setRoute('vip');
+        setParams({});
       } else {
         setRoute('home');
         setParams({});
@@ -60,6 +78,10 @@ function App() {
         return <MangaDetails mangaId={params.mangaId} />;
       case 'reader':
         return <MangaReader chapterId={params.chapterId} />;
+      case 'profile':
+        return <Profile />;
+      case 'vip':
+        return <VIP />;
       case 'favorites':
         return <Favorites />;
       case 'search':

@@ -25,7 +25,24 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
+}
 
+body.vip-theme {
+  --bg-base: #06050b;
+  --bg-surface: #100b1a;
+  --bg-surface-hover: #1b122c;
+  
+  --accent-purple: #ffd700;
+  --accent-pink: #ff007f;
+  --accent-cyan: #ff007f;
+  --accent-gradient: linear-gradient(135deg, #ffd700, #ff007f);
+  --accent-gradient-hover: linear-gradient(135deg, #ffea00, #ff3399);
+  
+  --border-glow: rgba(255, 215, 0, 0.4);
+  --glow-purple: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+:root {
   /* Shadows & Glows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
