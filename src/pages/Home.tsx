@@ -7,6 +7,7 @@ import { Play, Clock, TrendingUp, Sparkles } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
+  const [popularManga, setPopularManga] = useState<Manga[]>([]);
   const [heroManga, setHeroManga] = useState<Manga | null>(null);
   
   const [loadingLatest, setLoadingLatest] = useState(true);
@@ -24,6 +25,7 @@ export const Home: React.FC = () => {
       try {
         const popular = await getPopularManga(6);
         if (popular.length > 0) {
+          setPopularManga(popular);
           // Select a random popular manga for hero, or just the first one
           setHeroManga(popular[0]);
         }
@@ -182,6 +184,27 @@ export const Home: React.FC = () => {
           </section>
         )}
 
+        {/* Popular Manga Section */}
+        {!loadingPopular && popularManga.length > 0 && (
+          <section style={sectionStyle} className="slide-up">
+            <h2 style={sectionTitleStyle}>
+              <Sparkles size={22} style={{ color: 'var(--accent-pink)' }} />
+              Mangás Mais Populares
+            </h2>
+            <div style={popularScrollStyle}>
+              {popularManga.map((manga) => (
+                <div key={manga.id} style={popularItemStyle} className="popular-item">
+                  <MangaCard 
+                    manga={manga} 
+                    isFavorite={isFavorite(manga.id)}
+                    onToggleFavorite={() => toggleFavorite(manga)}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Latest Updates Section */}
         <section style={sectionStyle}>
           <div style={sectionHeaderStyle}>
@@ -233,9 +256,17 @@ export const Home: React.FC = () => {
           cursor: pointer;
         }
         
-        /* Smooth Scrollbar for History horizontal slider */
+        .popular-item {
+          transition: transform 0.2s ease;
+        }
+        
+        /* Smooth Scrollbar for horizontal sliders */
         div::-webkit-scrollbar {
           height: 6px;
+        }
+        div::-webkit-scrollbar-track {
+          background: rgba(0,0,0,0.2);
+          border-radius: 3px;
         }
         div::-webkit-scrollbar-thumb {
           background: #1e293b;
@@ -409,6 +440,21 @@ const historyScrollStyle: React.CSSProperties = {
   overflowX: 'auto',
   paddingBottom: '0.75rem',
   scrollSnapType: 'x mandatory',
+};
+
+const popularScrollStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '1.25rem',
+  overflowX: 'auto',
+  paddingBottom: '1.5rem',
+  scrollSnapType: 'x mandatory',
+};
+
+const popularItemStyle: React.CSSProperties = {
+  minWidth: '170px',
+  maxWidth: '200px',
+  flexShrink: 0,
+  scrollSnapAlign: 'start',
 };
 
 const historyCardStyle: React.CSSProperties = {
