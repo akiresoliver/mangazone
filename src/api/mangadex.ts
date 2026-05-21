@@ -1,5 +1,5 @@
 // MangaDex API Client Module
-const BASE_URL = 'https://api.mangadex.org';
+const BASE_URL = '/proxy/api';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
 interface CacheEntry {
@@ -89,7 +89,7 @@ function parseMangaData(item: any): Manga {
 
   const coverFileName = getCoverFilename(item);
   const coverUrl = coverFileName 
-    ? `https://uploads.mangadex.org/covers/${item.id}/${coverFileName}.512.jpg`
+    ? `/proxy/uploads/covers/${item.id}/${coverFileName}.512.jpg`
     : 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=512&q=80'; // fallback beautiful anime placeholder
 
   const tags = item.attributes.tags
