@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getLatestManga, getPopularManga, type Manga } from '../api/mangadex';
+import { getLatestManga, getPopularManga, getMangaDetails, type Manga } from '../api/mangadex';
 import { MangaCard } from '../components/MangaCard';
 import { MangaGridSkeleton } from '../components/Skeleton';
 import { useHistory, useFavorites } from '../hooks/useLocalStorage';
@@ -26,8 +26,15 @@ export const Home: React.FC = () => {
         const popular = await getPopularManga(6);
         if (popular.length > 0) {
           setPopularManga(popular);
-          // Select a random popular manga for hero, or just the first one
-          setHeroManga(popular[0]);
+          
+          // Use the last read manga as Hero if history exists, otherwise use the most popular
+          if (history.length > 0) {
+            // Need to fetch full manga details since history only has basic info
+            const lastReadDetails = await getMangaDetails(history[0].mangaId).catch(() => null);
+            setHeroManga(lastReadDetails || popular[0]);
+          } else {
+            setHeroManga(popular[0]);
+          }
         }
       } catch (err) {
         console.error('Erro ao buscar mangás populares:', err);
@@ -36,7 +43,7 @@ export const Home: React.FC = () => {
       }
     }
     loadPopular();
-  }, []);
+  }, [history]);
 
   // Fetch Latest Manga Updates
   useEffect(() => {
@@ -96,8 +103,17 @@ export const Home: React.FC = () => {
             <div style={heroOverlayStyle} />
             <div style={heroContentStyle}>
               <div style={heroBadgeStyle}>
-                <Sparkles size={14} />
-                <span>Recomendado de Hoje</span>
+                {history.length > 0 && history[0].mangaId === heroManga.id ? (
+                  <>
+                    <Clock size={14} />
+                    <span>Continuar Lendo</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} />
+                    <span>Recomendado de Hoje</span>
+                  </>
+                )}
               </div>
               <h1 style={heroTitleStyle}>{heroManga.title}</h1>
               <p style={heroMetaStyle}>
@@ -114,9 +130,12 @@ export const Home: React.FC = () => {
                 )}
               </p>
               <p style={heroDescStyle}>
-                {heroManga.description.length > 250 
-                  ? `${heroManga.description.substring(0, 250)}...` 
-                  : heroManga.description}
+                {history.length > 0 && history[0].mangaId === heroManga.id ? 
+                  `Você parou no Capítulo ${history[0].chapterNum}. Continue de onde parou!` :
+                  (heroManga.description.length > 250 
+                    ? `${heroManga.description.substring(0, 250)}...` 
+                    : heroManga.description)
+                }
               </p>
               
               <div style={heroTagsStyle}>
@@ -128,10 +147,22 @@ export const Home: React.FC = () => {
               </div>
               
               <div style={heroActionsStyle}>
-                <button onClick={handleHeroReadClick} className="btn btn-primary" style={heroBtnStyle}>
-                  <Play size={18} fill="currentColor" />
-                  Começar a Ler
-                </button>
+                {history.length > 0 && history[0].mangaId === heroManga.id ? (
+                  <button 
+                    onClick={() => window.location.hash = `#/chapter/${history[0].chapterId}`} 
+                    className="btn btn-primary" 
+                    style={heroBtnStyle}
+                  >
+                    <Play size={18} fill="currentColor" />
+                    Ler Capítulo {history[0].chapterNum}
+                  </button>
+                ) : (
+                  <button onClick={handleHeroReadClick} className="btn btn-primary" style={heroBtnStyle}>
+                    <Play size={18} fill="currentColor" />
+                    Começar a Ler
+                  </button>
+                )}
+                
                 <button 
                   onClick={() => toggleFavorite(heroManga)} 
                   className="btn btn-secondary" 

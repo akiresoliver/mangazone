@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getMangaDetails, getMangaChapters, type Manga, type Chapter } from '../api/mangadex';
 import { MangaDetailsSkeleton } from '../components/Skeleton';
-import { useFavorites, useHistory } from '../hooks/useLocalStorage';
+import { useFavorites, useHistory, useRatings } from '../hooks/useLocalStorage';
 import { Star, Play, ChevronDown, ChevronUp, Search, Calendar, Globe, BookOpen, Check } from 'lucide-react';
 
 interface MangaDetailsProps {
@@ -26,6 +26,7 @@ export const MangaDetails: React.FC<MangaDetailsProps> = ({ mangaId }) => {
 
   const { isFavorite, toggleFavorite } = useFavorites();
   const { getMangaProgress } = useHistory();
+  const { getRating, saveRating } = useRatings();
 
   // Load Manga details and chapters
   useEffect(() => {
@@ -185,6 +186,33 @@ export const MangaDetails: React.FC<MangaDetailsProps> = ({ mangaId }) => {
               {manga.tags.slice(0, 5).map((t, idx) => (
                 <span key={idx} className="badge badge-purple">{t}</span>
               ))}
+            </div>
+
+            {/* Rating System */}
+            <div style={ratingContainerStyle}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Sua Avaliação:</span>
+              <div style={{ display: 'flex', gap: '0.2rem' }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => saveRating(manga.id, star)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0.2rem',
+                    }}
+                    title={`Avaliar com ${star} estrelas`}
+                  >
+                    <Star 
+                      size={20} 
+                      fill={star <= getRating(manga.id) ? '#ffd700' : 'none'} 
+                      color={star <= getRating(manga.id) ? '#ffd700' : 'var(--border-color)'} 
+                      style={{ transition: 'all 0.2s' }}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Synopsis */}
@@ -486,6 +514,17 @@ const tagsContainerStyle: React.CSSProperties = {
   gap: '0.5rem',
   flexWrap: 'wrap',
   margin: '0.25rem 0',
+};
+
+const ratingContainerStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  background: 'rgba(255,255,255,0.02)',
+  padding: '0.5rem 1rem',
+  borderRadius: 'var(--radius-md)',
+  width: 'fit-content',
+  border: '1px solid var(--border-color)',
 };
 
 const descriptionContainerStyle: React.CSSProperties = {

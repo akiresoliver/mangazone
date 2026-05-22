@@ -30,6 +30,7 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
   
   // Reader state
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
   const readerTopRef = useRef<HTMLDivElement>(null);
   
   const { saveHistory } = useHistory();
@@ -156,6 +157,7 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
 
   // Page by page controls
   const handleNextPage = () => {
+    setIsZoomed(false); // Reset zoom on page change
     const currentPagesList = quality === 'original' ? pages : saverPages;
     if (currentPageIndex < currentPagesList.length - 1) {
       setCurrentPageIndex(currentPageIndex + 1);
@@ -167,6 +169,7 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
   };
 
   const handlePrevPage = () => {
+    setIsZoomed(false); // Reset zoom on page change
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -174,6 +177,10 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
       // Go to prev chapter
       window.location.hash = `#/chapter/${prevChapter.id}`;
     }
+  };
+
+  const toggleZoom = () => {
+    setIsZoomed(!isZoomed);
   };
 
   if (loading) {
@@ -269,11 +276,22 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
         {viewMode === 'cascade' ? (
           <div style={cascadePagesWrapperStyle}>
             {activePages.map((url, index) => (
-              <div key={index} style={cascadeImageWrapperStyle} className="cascade-image-container">
+              <div 
+                key={index} 
+                style={cascadeImageWrapperStyle} 
+                className="cascade-image-container"
+                onDoubleClick={toggleZoom}
+              >
                 <img
                   src={url}
                   alt={`Página ${index + 1}`}
-                  style={cascadeImageStyle}
+                  style={{
+                    ...cascadeImageStyle,
+                    transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
+                    cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+                    transformOrigin: 'top center',
+                    transition: 'transform 0.3s ease'
+                  }}
                   loading="lazy"
                 />
                 <div style={pageNumberOverlayStyle}>
@@ -285,18 +303,30 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
         ) : (
           /* Single Page Mode */
           <div style={singlePageWrapperStyle}>
-            <div style={singlePageImageContainerStyle}>
+            <div 
+              style={{
+                ...singlePageImageContainerStyle,
+                overflow: isZoomed ? 'visible' : 'hidden'
+              }}
+              onDoubleClick={toggleZoom}
+            >
               {/* Prev click zone */}
-              <div onClick={handlePrevPage} style={leftNavZoneStyle} className="nav-zone" />
+              {!isZoomed && <div onClick={handlePrevPage} style={leftNavZoneStyle} className="nav-zone" />}
               
               <img
                 src={currentImage}
                 alt={`Página ${currentPageIndex + 1}`}
-                style={singlePageImageStyle}
+                style={{
+                  ...singlePageImageStyle,
+                  transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
+                  cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+                  transition: 'transform 0.3s ease',
+                  maxHeight: isZoomed ? 'none' : '85vh'
+                }}
               />
               
               {/* Next click zone */}
-              <div onClick={handleNextPage} style={rightNavZoneStyle} className="nav-zone" />
+              {!isZoomed && <div onClick={handleNextPage} style={rightNavZoneStyle} className="nav-zone" />}
             </div>
 
             {/* Pagination Info & Controls */}

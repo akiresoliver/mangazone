@@ -94,3 +94,29 @@ export function useHistory() {
 
   return { history, saveHistory, getMangaProgress, clearHistory };
 }
+
+// Custom hook to manage ratings
+export function useRatings() {
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const stored = localStorage.getItem('mangastop_ratings');
+    if (stored) {
+      try {
+        setRatings(JSON.parse(stored));
+      } catch (e) {}
+    }
+  }, []);
+
+  const saveRating = (mangaId: string, rating: number) => {
+    const newRatings = { ...ratings, [mangaId]: rating };
+    setRatings(newRatings);
+    localStorage.setItem('mangastop_ratings', JSON.stringify(newRatings));
+  };
+
+  const getRating = (mangaId: string) => {
+    return ratings[mangaId] || 0;
+  };
+
+  return { ratings, saveRating, getRating };
+}
