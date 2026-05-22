@@ -187,8 +187,7 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
     return (
       <div style={loadingContainerStyle}>
         <Loader2 size={48} className="animate-spin" style={{ color: 'var(--accent-purple)' }} />
-        <h3>Carregando capítulo...</h3>
-        <p style={{ color: 'var(--text-muted)' }}>Buscando imagens do MangaDex@Home</p>
+        <h3>Preparando as páginas...</h3>
       </div>
     );
   }
