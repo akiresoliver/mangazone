@@ -45,20 +45,17 @@ export function useFavorites() {
   return { favorites, toggleFavorite, isFavorite };
 }
 
-// Custom hook to manage history
+// Custom hook to manage reading history
 export function useHistory() {
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-
-  useEffect(() => {
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
     const stored = localStorage.getItem('mangastop_history');
     if (stored) {
-      try {
-        setHistory(JSON.parse(stored));
-      } catch (e) {}
+      try { return JSON.parse(stored); } catch (e) {}
     }
-  }, []);
+    return [];
+  });
 
-  const saveHistory = async (
+  const saveHistory = (
     mangaId: string,
     mangaTitle: string,
     mangaCover: string,
@@ -76,18 +73,27 @@ export function useHistory() {
       timestamp: Date.now(),
     };
 
-    const filtered = history.filter((h) => h.mangaId !== mangaId);
-    const updated = [newEntry, ...filtered].slice(0, 20); // Keep last 20
-
-    setHistory(updated);
-    localStorage.setItem('mangastop_history', JSON.stringify(updated));
+    setHistory((prev) => {
+      // Also read from localStorage to guarantee no stale closures if called from multiple tabs/fast renders
+      const stored = localStorage.getItem('mangastop_history');
+      let currentHistory = prev;
+      if (stored) {
+        try { currentHistory = JSON.parse(stored); } catch (e) {}
+      }
+      
+      const filtered = currentHistory.filter((h) => h.mangaId !== mangaId);
+      const updated = [newEntry, ...filtered].slice(0, 20); // Keep last 20
+      
+      localStorage.setItem('mangastop_history', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const getMangaProgress = (mangaId: string) => {
     return history.find((h) => h.mangaId === mangaId) || null;
   };
 
-  const clearHistory = async () => {
+  const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem('mangastop_history');
   };
