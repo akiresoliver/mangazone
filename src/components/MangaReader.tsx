@@ -457,15 +457,14 @@ const readerContainerStyle: React.CSSProperties = {
 };
 
 const toolbarStyle: React.CSSProperties = {
-  position: 'sticky',
-  top: 0,
-  left: 0,
+  position: 'relative',
   width: '100%',
   height: '64px',
   zIndex: 100,
   borderBottom: '1px solid var(--border-color)',
   display: 'flex',
   alignItems: 'center',
+  background: 'var(--bg-base)', // solid background just in case
 };
 
 const toolbarContainerStyle: React.CSSProperties = {
