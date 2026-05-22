@@ -46,14 +46,27 @@ export const Search: React.FC<SearchProps> = ({ query }) => {
       <div style={headerStyle}>
         <h1 style={titleStyle}>
           <SearchIcon size={28} style={{ color: 'var(--accent-purple)' }} />
-          Resultados da Busca
+          {query.trim() ? 'Resultados da Busca' : 'Descobrir Mangás'}
         </h1>
         <p style={subtitleStyle}>
-          Exibindo resultados para: <strong>"{query}"</strong>
+          {query.trim() ? `Exibindo resultados para: "${query}"` : 'Busque por um título ou escolha uma categoria abaixo:'}
         </p>
       </div>
 
-      {loading ? (
+      {!query.trim() ? (
+        <div style={categoriesContainerStyle}>
+          {['Ação', 'Romance', 'Comédia', 'Isekai', 'Terror', 'Ficção Científica', 'Mistério', 'Drama', 'Aventura', 'Fantasia'].map(cat => (
+            <button 
+              key={cat} 
+              onClick={() => window.location.hash = `#/search?q=${cat}`}
+              style={categoryBtnStyle}
+              className="category-btn"
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      ) : loading ? (
         <MangaGridSkeleton count={12} />
       ) : error ? (
         <div style={errorContainerStyle}>
@@ -86,6 +99,15 @@ export const Search: React.FC<SearchProps> = ({ query }) => {
           ))}
         </div>
       )}
+      
+      <style>{`
+        .category-btn:hover {
+          background: var(--accent-purple) !important;
+          color: white !important;
+          transform: translateY(-2px);
+          box-shadow: var(--glow-purple);
+        }
+      `}</style>
     </div>
   );
 };
@@ -150,4 +172,26 @@ const emptyContainerStyle: React.CSSProperties = {
   background: 'var(--bg-surface)',
   borderRadius: 'var(--radius-lg)',
   border: '1px solid var(--border-color)',
+};
+
+const categoriesContainerStyle: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '1rem',
+  marginTop: '2rem',
+};
+
+const categoryBtnStyle: React.CSSProperties = {
+  padding: '1rem 2rem',
+  borderRadius: 'var(--radius-full)',
+  background: 'var(--bg-surface)',
+  border: '1px solid var(--border-color)',
+  color: 'var(--text-primary)',
+  fontWeight: '700',
+  fontSize: '1rem',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  flex: '1 1 calc(20% - 1rem)',
+  minWidth: '150px',
+  textAlign: 'center',
 };

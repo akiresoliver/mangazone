@@ -129,21 +129,32 @@ export async function getLatestManga(page: number = 0, limit: number = 20): Prom
 }
 
 /**
- * Fetch popular mangas for the Hero banner or sliders
+ * Fetch popular mangas (All time by followed count)
  */
-export async function getPopularManga(limit: number = 10): Promise<Manga[]> {
-  // Curated list of super popular mangas requested by user (Blue Lock, JJK, Solo Leveling, Chainsaw Man, Frieren)
-  const popularIds = [
-    '4141c5dc-c525-4df5-afd7-cc7d192a832f', // Blue Lock
-    'b1ab4045-3170-4966-93db-dd0101b7a2d4', // Jujutsu Kaisen
-    '32d76d19-8a05-4db0-9fc2-e0b0648fe9d0', // Solo Leveling
-    'a77742b1-befd-49a4-bff5-1ad4e6b0ef7b', // Chainsaw Man
-    'c52b2ce3-7f95-469c-96b0-479524fc7a1a', // Kagurabachi
-    '9c6ccbc7-27b4-42b7-a36c-2fbd6a6b58ce', // Sousou no Frieren
-  ];
+export async function getPopularManga(limit: number = 15): Promise<Manga[]> {
+  const url = `${BASE_URL}/manga?limit=${limit}&order[followedCount]=desc&includes[]=cover_art&includes[]=author&includes[]=artist&contentRating[]=safe&contentRating[]=suggestive`;
   
-  const idsQuery = popularIds.map(id => `ids[]=${id}`).join('&');
-  const url = `${BASE_URL}/manga?${idsQuery}&limit=${limit}&includes[]=cover_art&includes[]=author&includes[]=artist`;
+  const res = await fetchWithCache<any>(url);
+  if (!res.data) return [];
+  return res.data.map(parseMangaData);
+}
+
+/**
+ * Fetch trending mangas (Highest rating)
+ */
+export async function getTrendingManga(limit: number = 15): Promise<Manga[]> {
+  const url = `${BASE_URL}/manga?limit=${limit}&order[rating]=desc&includes[]=cover_art&includes[]=author&includes[]=artist&contentRating[]=safe&contentRating[]=suggestive&hasAvailableChapters=true`;
+  
+  const res = await fetchWithCache<any>(url);
+  if (!res.data) return [];
+  return res.data.map(parseMangaData);
+}
+
+/**
+ * Fetch newly added mangas
+ */
+export async function getNewManga(limit: number = 15): Promise<Manga[]> {
+  const url = `${BASE_URL}/manga?limit=${limit}&order[createdAt]=desc&includes[]=cover_art&includes[]=author&includes[]=artist&contentRating[]=safe&contentRating[]=suggestive`;
   
   const res = await fetchWithCache<any>(url);
   if (!res.data) return [];

@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { getLatestManga, getPopularManga, getMangaDetails, type Manga } from '../api/mangadex';
+import { getLatestManga, getPopularManga, getTrendingManga, getMangaDetails, type Manga } from '../api/mangadex';
 import { MangaCard } from '../components/MangaCard';
 import { MangaGridSkeleton } from '../components/Skeleton';
 import { useHistory, useFavorites } from '../hooks/useLocalStorage';
-import { Play, Clock, TrendingUp, Sparkles } from 'lucide-react';
+import { Play, Clock, TrendingUp, Sparkles, Star } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
   const [popularManga, setPopularManga] = useState<Manga[]>([]);
+  const [trendingManga, setTrendingManga] = useState<Manga[]>([]);
   const [heroManga, setHeroManga] = useState<Manga | null>(null);
   
   const [loadingLatest, setLoadingLatest] = useState(true);
   const [loadingPopular, setLoadingPopular] = useState(true);
+  const [loadingTrending, setLoadingTrending] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -19,17 +21,16 @@ export const Home: React.FC = () => {
   const { history } = useHistory();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  // Fetch Popular Manga for Hero
+  // Fetch Popular Manga for Hero and List
   useEffect(() => {
     async function loadPopular() {
       try {
-        const popular = await getPopularManga(6);
+        const popular = await getPopularManga(15);
         if (popular.length > 0) {
           setPopularManga(popular);
           
           // Use the last read manga as Hero if history exists, otherwise use the most popular
           if (history.length > 0) {
-            // Need to fetch full manga details since history only has basic info
             const lastReadDetails = await getMangaDetails(history[0].mangaId).catch(() => null);
             setHeroManga(lastReadDetails || popular[0]);
           } else {
@@ -45,6 +46,21 @@ export const Home: React.FC = () => {
     loadPopular();
   }, [history]);
 
+  // Fetch Trending Manga
+  useEffect(() => {
+    async function loadTrending() {
+      try {
+        const trending = await getTrendingManga(15);
+        setTrendingManga(trending);
+      } catch (err) {
+        console.error('Erro ao buscar mangás em alta:', err);
+      } finally {
+        setLoadingTrending(false);
+      }
+    }
+    loadTrending();
+  }, []);
+
   // Fetch Latest Manga Updates
   useEffect(() => {
     async function loadLatest() {
@@ -54,7 +70,7 @@ export const Home: React.FC = () => {
         setLatestManga(latest);
       } catch (err: any) {
         console.error('Erro ao buscar atualizações recentes:', err);
-        setError('Não foi possível conectar ao servidor de mangás. Se você usa AdBlocker (Brave, uBlock), tente desativá-lo para este site.');
+        setError('Não foi possível conectar ao servidor de mangás. Se você usa AdBlocker, tente desativá-lo.');
       } finally {
         setLoadingLatest(false);
       }
@@ -209,6 +225,27 @@ export const Home: React.FC = () => {
                       Lido {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Trending Manga Section */}
+        {!loadingTrending && trendingManga.length > 0 && (
+          <section style={sectionStyle} className="slide-up">
+            <h2 style={sectionTitleStyle}>
+              <Star size={22} style={{ color: 'var(--accent-purple)' }} />
+              Mangás em Alta (Mais bem Avaliados)
+            </h2>
+            <div style={popularScrollStyle}>
+              {trendingManga.map((manga) => (
+                <div key={manga.id} style={popularItemStyle} className="popular-item">
+                  <MangaCard 
+                    manga={manga} 
+                    isFavorite={isFavorite(manga.id)}
+                    onToggleFavorite={() => toggleFavorite(manga)}
+                  />
                 </div>
               ))}
             </div>
