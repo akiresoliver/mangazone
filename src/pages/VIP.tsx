@@ -66,7 +66,7 @@ export const VIP: React.FC = () => {
             <ul style={featuresListStyle}>
               <li style={featureStyle}><Check size={18} color="#22c55e" /> Milhares de Mangás</li>
               <li style={featureStyle}><Check size={18} color="#22c55e" /> Atualizações Diárias</li>
-              <li style={featureStyle}><Check size={18} color="#22c55e" /> Salvar Favoritos no PC/Celular</li>
+              <li style={featureStyle}><Check size={18} color="#22c55e" /> Salvar Favoritos no Navegador</li>
               <li style={{ ...featureStyle, opacity: 0.5 }}><XIcon size={18} /> Com Anúncios</li>
               <li style={{ ...featureStyle, opacity: 0.5 }}><XIcon size={18} /> Temas Padrão</li>
             </ul>

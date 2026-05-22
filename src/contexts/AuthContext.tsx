@@ -6,8 +6,7 @@ import {
   signOut, 
   onAuthStateChanged 
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { auth } from '../firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -31,23 +30,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Check Firestore for VIP status
-        const userRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(userRef);
-        
-        if (docSnap.exists()) {
-          setIsVip(docSnap.data().isVip || false);
-        } else {
-          // Create user doc if not exists
-          await setDoc(userRef, {
-            email: currentUser.email,
-            displayName: currentUser.displayName,
-            photoURL: currentUser.photoURL,
-            isVip: false,
-            createdAt: new Date().toISOString()
-          });
-          setIsVip(false);
-        }
+        // Fallback to localStorage for VIP
+        const vipStatus = localStorage.getItem(`vip_${currentUser.uid}`);
+        setIsVip(vipStatus === 'true');
       } else {
         setIsVip(false);
       }
@@ -76,8 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const simulateVipPurchase = async () => {
     if (!user) return;
-    const userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, { isVip: true }, { merge: true });
+    localStorage.setItem(`vip_${user.uid}`, 'true');
     setIsVip(true);
   };
 

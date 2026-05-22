@@ -65,7 +65,7 @@ export const Profile: React.FC = () => {
             <h3>Meus Dados</h3>
           </div>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Seus favoritos e histórico estão sendo sincronizados na nuvem.
+            Seus favoritos e histórico estão sendo salvos no seu navegador atual.
           </p>
           <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
             <button onClick={() => { logout(); window.location.hash = '#/'; }} style={logoutBtnStyle}>
