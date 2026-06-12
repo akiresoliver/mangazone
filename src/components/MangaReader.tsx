@@ -251,10 +251,10 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
             <select 
               value={chapter.id} 
               onChange={handleChapterSelect}
-              style={selectStyle}
+              style={{ ...selectStyle, backgroundColor: 'var(--bg-base)' }}
             >
               {chaptersList.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={c.id} style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
                   Cap. {c.chapterNum} {c.title ? `- ${c.title.substring(0, 20)}` : ''}
                 </option>
               ))}

@@ -1,9 +1,11 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../hooks/useTheme';
 import { Crown, LogOut, Settings, Star } from 'lucide-react';
 
 export const Profile: React.FC = () => {
   const { user, isVip, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   if (!user) {
     return (
@@ -46,17 +48,34 @@ export const Profile: React.FC = () => {
       <div style={dashboardGridStyle}>
         <div className="glass" style={cardStyle}>
           <div style={cardHeaderStyle}>
-            <Settings size={20} color="var(--accent-cyan)" />
-            <h3>Personalização</h3>
+            <Settings size={20} color="var(--accent-purple)" />
+            <h3>Personalização de Tema</h3>
           </div>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-            {isVip ? 'Como membro VIP, você pode personalizar o tema do site em breve!' : 'Adquira o VIP para personalizar o tema e as cores do site.'}
+            Escolha o visual do seu leitor inspirado em clássicos.
           </p>
-          {!isVip && (
-            <button onClick={() => window.location.hash = '#/vip'} style={primaryBtnStyle}>
-              Ver Benefícios VIP
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => setTheme('original')} 
+              style={{...themeBtnStyle, background: '#8b5cf6', borderColor: theme === 'original' ? 'white' : 'transparent'}}
+              title="MangaZone Original"
+            />
+            <button 
+              onClick={() => setTheme('deku')} 
+              style={{...themeBtnStyle, background: '#10b981', borderColor: theme === 'deku' ? 'white' : 'transparent'}}
+              title="Modo Deku (Verde)"
+            />
+            <button 
+              onClick={() => setTheme('slime')} 
+              style={{...themeBtnStyle, background: '#0ea5e9', borderColor: theme === 'slime' ? 'white' : 'transparent'}}
+              title="Modo Slime (Azul)"
+            />
+            <button 
+              onClick={() => setTheme('sukuna')} 
+              style={{...themeBtnStyle, background: '#ef4444', borderColor: theme === 'sukuna' ? 'white' : 'transparent'}}
+              title="Modo Sukuna (Vermelho)"
+            />
+          </div>
         </div>
 
         <div className="glass" style={cardStyle}>
@@ -134,17 +153,6 @@ const cardHeaderStyle: React.CSSProperties = {
   marginBottom: '1rem',
 };
 
-const primaryBtnStyle: React.CSSProperties = {
-  background: 'var(--accent-gradient)',
-  color: 'white',
-  border: 'none',
-  padding: '0.75rem 1rem',
-  borderRadius: 'var(--radius-sm)',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  marginTop: 'auto',
-};
-
 const logoutBtnStyle: React.CSSProperties = {
   background: 'rgba(255, 50, 50, 0.1)',
   color: '#ff5555',
@@ -156,4 +164,13 @@ const logoutBtnStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
+};
+
+const themeBtnStyle: React.CSSProperties = {
+  width: '40px',
+  height: '40px',
+  borderRadius: '50%',
+  border: '2px solid transparent',
+  cursor: 'pointer',
+  transition: 'transform 0.2s',
 };

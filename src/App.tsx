@@ -10,13 +10,17 @@ import { Profile } from './pages/Profile';
 import { VIP } from './pages/VIP';
 import { Novels } from './pages/Novels';
 import { useAuth } from './contexts/AuthContext';
+import { useTheme } from './hooks/useTheme';
 import './App.css';
 
 type Route = 'home' | 'manga-details' | 'favorites' | 'search' | 'reader' | 'profile' | 'vip' | 'novels';
 
 function App() {
   const [route, setRoute] = useState<Route>('home');
-  const [params, setParams] = useState<any>({});
+  const [params, setParams] = useState<Record<string, string>>({});
+  
+  // Initialize theme globally
+  useTheme();
   const { isVip } = useAuth();
 
   useEffect(() => {
