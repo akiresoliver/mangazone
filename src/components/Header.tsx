@@ -148,6 +148,10 @@ export const Header: React.FC = () => {
             <Home size={18} />
             <span className="desktop-text">Início</span>
           </a>
+          <a href="#/novels" style={navLinkStyle} className="nav-link">
+            <BookOpen size={18} />
+            <span className="desktop-text">Novels</span>
+          </a>
           <a href="#/favorites" style={navLinkStyle} className="nav-link">
             <Star size={18} />
             <span className="desktop-text">Biblioteca</span>

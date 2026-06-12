@@ -185,6 +185,28 @@ export async function getMangaDetails(mangaId: string): Promise<Manga> {
   return parseMangaData(res.data);
 }
 
+export async function getLightNovels(limit = 10, offset = 0): Promise<Manga[]> {
+  const params = new URLSearchParams();
+  params.append('limit', limit.toString());
+  params.append('offset', offset.toString());
+  params.append('includes[]', 'cover_art');
+  params.append('includes[]', 'author');
+  params.append('contentRating[]', 'safe');
+  params.append('contentRating[]', 'suggestive');
+  params.append('includedTags[]', 'f4122d1c-3b44-44d0-9936-ff7502c39ad3'); // Adapted from Light Novel
+  params.append('includedTags[]', 'e197df38-d0e7-43b5-9b09-2842d0c326e6'); // Web Comic
+  params.append('includedTagsMode', 'OR');
+  params.append('order[followedCount]', 'desc');
+  params.append('hasAvailableChapters', 'true');
+
+  const url = `${BASE_URL}/manga?${params.toString()}`;
+  const data = await fetchWithCache<any>(url);
+  
+  if (!data || !data.data) return [];
+  
+  return data.data.map(parseMangaData);
+}
+
 /**
  * Fetch manga chapters
  */

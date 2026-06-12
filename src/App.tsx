@@ -8,10 +8,11 @@ import { Search } from './pages/Search';
 import { MangaReader } from './components/MangaReader';
 import { Profile } from './pages/Profile';
 import { VIP } from './pages/VIP';
+import { Novels } from './pages/Novels';
 import { useAuth } from './contexts/AuthContext';
 import './App.css';
 
-type Route = 'home' | 'manga-details' | 'favorites' | 'search' | 'reader' | 'profile' | 'vip';
+type Route = 'home' | 'manga-details' | 'favorites' | 'search' | 'reader' | 'profile' | 'vip' | 'novels';
 
 function App() {
   const [route, setRoute] = useState<Route>('home');
@@ -55,6 +56,9 @@ function App() {
       } else if (hash.startsWith('#/vip')) {
         setRoute('vip');
         setParams({});
+      } else if (hash.startsWith('#/novels')) {
+        setRoute('novels');
+        setParams({});
       } else {
         setRoute('home');
         setParams({});
@@ -82,6 +86,8 @@ function App() {
         return <Profile />;
       case 'vip':
         return <VIP />;
+      case 'novels':
+        return <Novels />;
       case 'favorites':
         return <Favorites />;
       case 'search':

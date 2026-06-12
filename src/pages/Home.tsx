@@ -217,7 +217,10 @@ export const Home: React.FC = () => {
                   <img src={entry.mangaCover} alt={entry.mangaTitle} style={historyCoverStyle} />
                   <div style={historyInfoStyle}>
                     <h4 style={historyTitleStyle} title={entry.mangaTitle}>{entry.mangaTitle}</h4>
-                    <span style={historyChapterStyle}>Capítulo {entry.chapterNum}</span>
+                    <span style={historyChapterStyle}>
+                      Capítulo {entry.chapterNum}
+                      {entry.pageNumber !== undefined && entry.pageNumber > 0 && ` • Página ${entry.pageNumber + 1}`}
+                    </span>
                     {entry.chapterTitle && (
                       <p style={historySubStyle} title={entry.chapterTitle}>{entry.chapterTitle}</p>
                     )}

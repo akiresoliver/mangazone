@@ -7,7 +7,8 @@ export interface HistoryEntry {
   mangaCover: string;
   chapterId: string;
   chapterNum: string;
-  chapterTitle: string;
+  chapterTitle?: string;
+  pageNumber?: number;
   timestamp: number;
 }
 
@@ -61,7 +62,8 @@ export function useHistory() {
     mangaCover: string,
     chapterId: string,
     chapterNum: string,
-    chapterTitle: string
+    chapterTitle: string,
+    pageNumber: number = 0
   ) => {
     const newEntry: HistoryEntry = {
       mangaId,
@@ -70,6 +72,7 @@ export function useHistory() {
       chapterId,
       chapterNum,
       chapterTitle,
+      pageNumber,
       timestamp: Date.now(),
     };
 

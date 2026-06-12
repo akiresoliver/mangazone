@@ -33,7 +33,7 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const readerTopRef = useRef<HTMLDivElement>(null);
   
-  const { saveHistory } = useHistory();
+  const { saveHistory, getMangaProgress } = useHistory();
 
   // Load Chapter and Manga details
   useEffect(() => {
@@ -65,15 +65,15 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
         
         setChaptersList(sameLangChapters);
 
-        // Save progress to Local History
-        saveHistory(
-          mangaData.id,
-          mangaData.title,
-          mangaData.coverUrl,
-          chapData.id,
-          chapData.chapterNum,
-          chapData.title
-        );
+        // Initial progress restoration
+        const progress = getMangaProgress(chapData.mangaId);
+        let startPage = 0;
+        if (progress && progress.chapterId === chapterId && progress.pageNumber) {
+          startPage = progress.pageNumber;
+          setCurrentPageIndex(startPage);
+        } else {
+          setCurrentPageIndex(0);
+        }
 
         // Add this chapter to read chapters array in localStorage
         const storedRead = localStorage.getItem('mangastop_read_chapters');
@@ -81,17 +81,21 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
         if (storedRead) {
           try {
             readList = JSON.parse(storedRead);
-          } catch (e) {
-            console.error(e);
-          }
+          } catch (e) {}
         }
         if (!readList.includes(chapterId)) {
           readList.push(chapterId);
           localStorage.setItem('mangastop_read_chapters', JSON.stringify(readList));
         }
 
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'instant' as any });
+        // Scroll to top or specific page
+        if (startPage > 0 && viewMode === 'cascade') {
+          setTimeout(() => {
+            document.getElementById(`page-${startPage}`)?.scrollIntoView({ behavior: 'instant' });
+          }, 200);
+        } else {
+          window.scrollTo({ top: 0, behavior: 'instant' as any });
+        }
       } catch (err) {
         console.error(err);
         setError('Não foi possível carregar as páginas do capítulo.');
@@ -102,6 +106,20 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
 
     loadReaderData();
   }, [chapterId]);
+
+  // Effect to save history whenever currentPageIndex changes
+  useEffect(() => {
+    if (!manga || !chapter || pages.length === 0) return;
+    saveHistory(
+      manga.id,
+      manga.title,
+      manga.coverUrl,
+      chapter.id,
+      chapter.chapterNum,
+      chapter.title,
+      currentPageIndex
+    );
+  }, [currentPageIndex, manga, chapter]);
 
   // Page mode keyboard controls
   useEffect(() => {
@@ -276,10 +294,22 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
           <div style={cascadePagesWrapperStyle}>
             {activePages.map((url, index) => (
               <div 
-                key={index} 
+                key={index}
+                id={`page-${index}`}
                 style={cascadeImageWrapperStyle} 
                 className="cascade-image-container"
                 onDoubleClick={toggleZoom}
+                ref={(el) => {
+                  if (el) {
+                    const observer = new IntersectionObserver((entries) => {
+                      if (entries[0].isIntersecting) {
+                        setCurrentPageIndex(index);
+                      }
+                    }, { threshold: 0.5 });
+                    observer.observe(el);
+                    // store observer to unobserve later if needed, but react handles unmounting ok here for simple cases
+                  }
+                }}
               >
                 <img
                   src={url}
@@ -292,6 +322,12 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
                     transition: 'transform 0.3s ease'
                   }}
                   loading="lazy"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (!img.src.includes('data-saver') && saverPages[index]) {
+                      img.src = saverPages[index];
+                    }
+                  }}
                 />
                 <div style={pageNumberOverlayStyle}>
                   Página {index + 1} de {activePages.length}
