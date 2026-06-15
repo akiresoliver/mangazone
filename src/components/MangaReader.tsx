@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getChapterPages, getChapterDetails, getMangaDetails, getMangaChapters, type Chapter, type Manga } from '../api/mangadex';
 import { useHistory } from '../hooks/useLocalStorage';
+import { useProfile } from '../hooks/useProfile';
+import { Comments } from './Comments';
 import { ChevronLeft, ChevronRight, Layout, Image as ImageIcon, ArrowLeft, Loader2 } from 'lucide-react';
 
 interface MangaReaderProps {
@@ -34,6 +36,7 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
   const readerTopRef = useRef<HTMLDivElement>(null);
   
   const { saveHistory, getMangaProgress } = useHistory();
+  const { addXp } = useProfile();
 
   // Load Chapter and Manga details
   useEffect(() => {
@@ -86,6 +89,8 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
         if (!readList.includes(chapterId)) {
           readList.push(chapterId);
           localStorage.setItem('mangastop_read_chapters', JSON.stringify(readList));
+          // Grant XP for reading a new chapter
+          addXp(50);
         }
 
         // Scroll to top or specific page
@@ -422,6 +427,14 @@ export const MangaReader: React.FC<MangaReaderProps> = ({ chapterId }) => {
             <ChevronRight size={18} />
           </button>
         </div>
+
+        {chapter && manga && (
+          <Comments 
+            url={`https://mangazone-demo.com/chapter/${chapter.id}`} 
+            identifier={chapter.id} 
+            title={`${manga.title} - Capítulo ${chapter.chapterNum}`} 
+          />
+        )}
 
       </div>
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getMangaDetails, getMangaChapters, type Manga, type Chapter } from '../api/mangadex';
 import { MangaDetailsSkeleton } from '../components/Skeleton';
 import { useFavorites, useHistory, useRatings } from '../hooks/useLocalStorage';
+import { Comments } from '../components/Comments';
 import { Star, Play, ChevronDown, ChevronUp, Search, Calendar, Globe, BookOpen, Check } from 'lucide-react';
 
 interface MangaDetailsProps {
@@ -365,6 +366,13 @@ export const MangaDetails: React.FC<MangaDetailsProps> = ({ mangaId }) => {
           )}
         </section>
 
+        {manga && (
+          <Comments 
+            url={`https://mangazone-demo.com/manga/${manga.id}`} 
+            identifier={manga.id} 
+            title={manga.title} 
+          />
+        )}
       </div>
 
       <style>{`

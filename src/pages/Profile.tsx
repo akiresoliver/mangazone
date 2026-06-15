@@ -7,7 +7,7 @@ import { Crown, LogOut, Settings, Star, Camera, Image as ImageIcon, Check } from
 export const Profile: React.FC = () => {
   const { user, isVip, logout } = useAuth();
   const { theme, setTheme, customColor, setCustomColor } = useTheme();
-  const { banner, avatar, updateBanner, updateAvatar } = useProfile();
+  const { banner, avatar, xp, level, updateBanner, updateAvatar } = useProfile();
   
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +71,7 @@ export const Profile: React.FC = () => {
             <h1 style={{ fontSize: '1.8rem', marginBottom: '0.2rem' }}>{user.displayName}</h1>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>{user.email}</p>
             
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
               {isVip ? (
                 <span className="badge badge-pink" style={{ fontSize: '0.9rem', padding: '0.3rem 0.6rem' }}>
                   <Crown size={16} /> Membro VIP
@@ -81,6 +81,20 @@ export const Profile: React.FC = () => {
                   Membro Gratuito
                 </span>
               )}
+              <span className="badge" style={{ fontSize: '0.9rem', padding: '0.3rem 0.6rem', background: 'var(--bg-surface-hover)', border: '1px solid var(--accent-purple)', color: 'var(--accent-purple)' }}>
+                Nível {level}
+              </span>
+            </div>
+            
+            {/* XP Progress Bar */}
+            <div style={{ width: '100%', maxWidth: '300px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
+                <span>XP de Leitura</span>
+                <span>{xp % 500} / 500 XP</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', background: 'var(--bg-surface-hover)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: `${(xp % 500) / 5}px`, minWidth: `${(xp % 500) / 5}%`, height: '100%', background: 'var(--accent-gradient)', borderRadius: '4px', transition: 'width 0.3s ease' }} />
+              </div>
             </div>
           </div>
         </div>

@@ -51,6 +51,21 @@ export function useProfile() {
     return localStorage.getItem('mangastop_avatar');
   });
 
+  const [xp, setXpState] = useState<number>(() => {
+    const savedXp = localStorage.getItem('mangastop_xp');
+    return savedXp ? parseInt(savedXp, 10) : 0;
+  });
+
+  const level = Math.floor(xp / 500) + 1;
+
+  const addXp = (amount: number) => {
+    setXpState(prev => {
+      const newXp = prev + amount;
+      localStorage.setItem('mangastop_xp', newXp.toString());
+      return newXp;
+    });
+  };
+
   const updateBanner = async (file: File) => {
     try {
       const base64 = await processImage(file);
@@ -73,5 +88,5 @@ export function useProfile() {
     }
   };
 
-  return { banner, avatar, updateBanner, updateAvatar };
+  return { banner, avatar, xp, level, addXp, updateBanner, updateAvatar };
 }

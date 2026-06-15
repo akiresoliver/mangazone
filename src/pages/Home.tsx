@@ -9,7 +9,10 @@ export const Home: React.FC = () => {
   const [latestManga, setLatestManga] = useState<Manga[]>([]);
   const [popularManga, setPopularManga] = useState<Manga[]>([]);
   const [trendingManga, setTrendingManga] = useState<Manga[]>([]);
-  const [heroManga, setHeroManga] = useState<Manga | null>(null);
+  
+  // Carousel State
+  const [heroMangas, setHeroMangas] = useState<Manga[]>([]);
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   
   const [loadingLatest, setLoadingLatest] = useState(true);
   const [loadingPopular, setLoadingPopular] = useState(true);
@@ -21,7 +24,7 @@ export const Home: React.FC = () => {
   const { history } = useHistory();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  // Fetch Popular Manga for Hero and List
+  // Fetch Popular Manga for Hero Carousel and List
   useEffect(() => {
     async function loadPopular() {
       try {
@@ -29,13 +32,16 @@ export const Home: React.FC = () => {
         if (popular.length > 0) {
           setPopularManga(popular);
           
-          // Use the last read manga as Hero if history exists, otherwise use the most popular
+          let carouselItems = popular.slice(0, 5);
+          
           if (history.length > 0) {
             const lastReadDetails = await getMangaDetails(history[0].mangaId).catch(() => null);
-            setHeroManga(lastReadDetails || popular[0]);
-          } else {
-            setHeroManga(popular[0]);
+            if (lastReadDetails) {
+              carouselItems = [lastReadDetails, ...popular.slice(0, 4)];
+            }
           }
+          
+          setHeroMangas(carouselItems);
         }
       } catch (err) {
         console.error('Erro ao buscar mangás populares:', err);
@@ -45,6 +51,15 @@ export const Home: React.FC = () => {
     }
     loadPopular();
   }, [history]);
+
+  // Auto-slide effect for carousel
+  useEffect(() => {
+    if (heroMangas.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveHeroIndex((prev) => (prev + 1) % heroMangas.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [heroMangas.length]);
 
   // Fetch Trending Manga
   useEffect(() => {
@@ -96,11 +111,6 @@ export const Home: React.FC = () => {
     }
   };
 
-  const handleHeroReadClick = () => {
-    if (heroManga) {
-      window.location.hash = `#/manga/${heroManga.id}`;
-    }
-  };
 
   return (
     <div style={homeContainerStyle} className="fade-in">
@@ -114,84 +124,124 @@ export const Home: React.FC = () => {
           </div>
         ) : loadingPopular ? (
           <div className="skeleton" style={heroSkeletonStyle} />
-        ) : heroManga ? (
-          <div style={heroWrapperStyle(heroManga.coverUrl)} className="slide-up">
-            <div style={heroOverlayStyle} />
-            <div style={heroContentStyle}>
-              <div style={heroBadgeStyle}>
-                {history.length > 0 && history[0].mangaId === heroManga.id ? (
-                  <>
-                    <Clock size={14} />
-                    <span>Continuar Lendo</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={14} />
-                    <span>Recomendado de Hoje</span>
-                  </>
-                )}
-              </div>
-              <h1 style={heroTitleStyle}>{heroManga.title}</h1>
-              <p style={heroMetaStyle}>
-                <span>Autor: <strong>{heroManga.author}</strong></span>
-                <span>•</span>
-                <span className={`badge ${heroManga.status === 'ongoing' ? 'badge-cyan' : 'badge-success'}`}>
-                  {heroManga.status === 'ongoing' ? 'Lançando' : 'Finalizado'}
-                </span>
-                {heroManga.year && (
-                  <>
-                    <span>•</span>
-                    <span>Ano: {heroManga.year}</span>
-                  </>
-                )}
-              </p>
-              <p style={heroDescStyle}>
-                {history.length > 0 && history[0].mangaId === heroManga.id ? 
-                  `Você parou no Capítulo ${history[0].chapterNum}. Continue de onde parou!` :
-                  (heroManga.description.length > 250 
-                    ? `${heroManga.description.substring(0, 250)}...` 
-                    : heroManga.description)
-                }
-              </p>
+        ) : heroMangas.length > 0 ? (
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            {heroMangas.map((manga, index) => {
+              const isActive = index === activeHeroIndex;
               
-              <div style={heroTagsStyle}>
-                {heroManga.tags.slice(0, 4).map((tag, i) => (
-                  <span key={i} className="badge badge-purple" style={{ textTransform: 'capitalize' }}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              
-              <div style={heroActionsStyle}>
-                {history.length > 0 && history[0].mangaId === heroManga.id ? (
-                  <button 
-                    onClick={() => window.location.hash = `#/chapter/${history[0].chapterId}`} 
-                    className="btn btn-primary" 
-                    style={heroBtnStyle}
-                  >
-                    <Play size={18} fill="currentColor" />
-                    Ler Capítulo {history[0].chapterNum}
-                  </button>
-                ) : (
-                  <button onClick={handleHeroReadClick} className="btn btn-primary" style={heroBtnStyle}>
-                    <Play size={18} fill="currentColor" />
-                    Começar a Ler
-                  </button>
-                )}
-                
-                <button 
-                  onClick={() => toggleFavorite(heroManga)} 
-                  className="btn btn-secondary" 
-                  style={{ 
-                    ...heroBtnStyle, 
-                    borderColor: isFavorite(heroManga.id) ? 'var(--accent-pink)' : 'var(--border-color)',
-                    color: isFavorite(heroManga.id) ? 'var(--accent-pink)' : 'var(--text-primary)' 
-                  }}
+              return (
+                <div 
+                  key={`${manga.id}-${index}`}
+                  style={{
+                    ...heroWrapperStyle(manga.coverUrl),
+                    opacity: isActive ? 1 : 0,
+                    transition: 'opacity 0.8s ease',
+                    position: isActive ? 'relative' : 'absolute',
+                    top: 0, left: 0, width: '100%', height: '100%',
+                    zIndex: isActive ? 1 : 0,
+                    pointerEvents: isActive ? 'auto' : 'none'
+                  }} 
                 >
-                  <Sparkles size={16} />
-                  {isFavorite(heroManga.id) ? 'Favoritado' : 'Salvar na Biblioteca'}
-                </button>
-              </div>
+                  <div style={heroOverlayStyle} />
+                  <div style={heroContentStyle}>
+                    <div style={heroBadgeStyle}>
+                      {index === 0 && history.length > 0 && history[0].mangaId === manga.id ? (
+                        <>
+                          <Clock size={14} />
+                          <span>Continuar Lendo</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={14} />
+                          <span>Destaque #{index + (history.length > 0 && history[0].mangaId === heroMangas[0].id ? 0 : 1)}</span>
+                        </>
+                      )}
+                    </div>
+                    <h1 style={heroTitleStyle}>{manga.title}</h1>
+                    <p style={heroMetaStyle}>
+                      <span>Autor: <strong>{manga.author}</strong></span>
+                      <span>•</span>
+                      <span className={`badge ${manga.status === 'ongoing' ? 'badge-cyan' : 'badge-success'}`}>
+                        {manga.status === 'ongoing' ? 'Lançando' : 'Finalizado'}
+                      </span>
+                      {manga.year && (
+                        <>
+                          <span>•</span>
+                          <span>Ano: {manga.year}</span>
+                        </>
+                      )}
+                    </p>
+                    <p style={heroDescStyle}>
+                      {index === 0 && history.length > 0 && history[0].mangaId === manga.id ? 
+                        `Você parou no Capítulo ${history[0].chapterNum}. Continue de onde parou!` :
+                        (manga.description.length > 200 
+                          ? `${manga.description.substring(0, 200)}...` 
+                          : manga.description)
+                      }
+                    </p>
+                    
+                    <div style={heroTagsStyle}>
+                      {manga.tags.slice(0, 4).map((tag, i) => (
+                        <span key={i} className="badge badge-purple" style={{ textTransform: 'capitalize' }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    
+                    <div style={heroActionsStyle}>
+                      {index === 0 && history.length > 0 && history[0].mangaId === manga.id ? (
+                        <button 
+                          onClick={() => window.location.hash = `#/chapter/${history[0].chapterId}`} 
+                          className="btn btn-primary" 
+                          style={heroBtnStyle}
+                        >
+                          <Play size={18} fill="currentColor" />
+                          Ler Capítulo {history[0].chapterNum}
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => window.location.hash = `#/manga/${manga.id}`} 
+                          className="btn btn-primary" 
+                          style={heroBtnStyle}
+                        >
+                          <Play size={18} fill="currentColor" />
+                          Começar a Ler
+                        </button>
+                      )}
+                      
+                      <button 
+                        onClick={() => toggleFavorite(manga)} 
+                        className="btn btn-secondary" 
+                        style={{ 
+                          ...heroBtnStyle, 
+                          borderColor: isFavorite(manga.id) ? 'var(--accent-pink)' : 'var(--border-color)',
+                          color: isFavorite(manga.id) ? 'var(--accent-pink)' : 'var(--text-primary)' 
+                        }}
+                      >
+                        <Star size={16} fill={isFavorite(manga.id) ? 'currentColor' : 'none'} />
+                        {isFavorite(manga.id) ? 'Favoritado' : 'Salvar na Biblioteca'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            
+            {/* Dots indicators */}
+            <div style={carouselDotsStyle}>
+              {heroMangas.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveHeroIndex(index)}
+                  style={{
+                    ...carouselDotStyle,
+                    background: activeHeroIndex === index ? 'var(--accent-purple)' : 'rgba(255,255,255,0.3)',
+                    transform: activeHeroIndex === index ? 'scale(1.2)' : 'scale(1)',
+                    width: activeHeroIndex === index ? '24px' : '8px'
+                  }}
+                  title={`Ir para slide ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
         ) : null}
@@ -604,4 +654,23 @@ const loadMoreButtonStyle: React.CSSProperties = {
   maxWidth: '240px',
   fontWeight: '700',
   background: 'rgba(255, 255, 255, 0.02)',
+};
+
+const carouselDotsStyle: React.CSSProperties = {
+  position: 'absolute',
+  bottom: '20px',
+  left: '0',
+  width: '100%',
+  display: 'flex',
+  justifyContent: 'center',
+  gap: '8px',
+  zIndex: 10,
+};
+
+const carouselDotStyle: React.CSSProperties = {
+  height: '8px',
+  borderRadius: '4px',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
 };
